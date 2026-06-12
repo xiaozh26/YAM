@@ -246,4 +246,4 @@ Built on top of:
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 Embodied Intelligence & Robotics Center (EMBER), UC Berkeley
