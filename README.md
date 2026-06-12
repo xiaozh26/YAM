@@ -1,6 +1,5 @@
 # YAM Station — Bimanual MuJoCo Simulation & VR Teleoperation
 
-> A project by the **Embodied Intelligence & Robotics Center (EMBER), UC Berkeley**
 
 **YAM Station** is a bimanual robot arm simulation and VR teleoperation stack built on MuJoCo.
 Control two 6-DOF YAM arms — left and right — from a **Meta Quest 3** headset in real time using a full 6-DOF Cartesian differential IK (damped-least-squares Jacobian), giving the gripper precise position *and* orientation tracking that follows your hand.
