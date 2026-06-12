@@ -49,9 +49,6 @@ Instead of scripted trajectories, you stream live hand-tracking data from a Ques
 | Supported configs | Single arm (`left`/`right`) · Both arms simultaneous |
 | Physics | MuJoCo passive viewer, 60 Hz control, 8 substeps per tick |
 
-**Why proper Jacobian IK?**
-The SO-101 arm in the companion LeRobot sim uses a 2D planar IK hack because it is a 5-DOF underactuated arm. YAM has full 6-DOF arms, so we use the MuJoCo Jacobian directly (damped least-squares) to track the 6-DOF controller pose without any kinematic approximations.
-
 ---
 
 ## Prerequisites
