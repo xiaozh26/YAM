@@ -239,7 +239,6 @@ Joint limits are clamped each iteration. The step size is capped at 0.25 rad/joi
 Built on top of:
 - [MuJoCo](https://github.com/google-deepmind/mujoco) by Google DeepMind
 - [XLeRobot / XLeVR](https://github.com/Vector-Wangel/XLeRobot) by Vector-Wangel (VR layer vendored under `station/vr/`)
-- [LeRobot](https://github.com/huggingface/lerobot) by Hugging Face (structural inspiration)
 - [viser](https://github.com/nerfstudio-project/viser) for interactive 3D visualization
 
 ---
