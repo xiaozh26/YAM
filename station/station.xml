@@ -309,6 +309,51 @@
       <geom type="mesh" mesh="camera_d405" contype="0" conaffinity="0" rgba="0.2 0.2 0.2 1" />
       <camera name="top_camera_d405" pos="0 0 0" quat="1 0 0 0" fovy="58.0869" resolution="1280 720" />
     </body>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         TEST OBJECTS  (VR teleop pick-and-place practice)
+         A plastic bowl in the middle of the table as a drop target + colored
+         blocks to grasp. The blocks have free joints so they can be picked up;
+         the bowl is static (fixed) so it stays put as a stable target.
+         Press ENTER in the MuJoCo viewer window to reset the blocks to these
+         start positions (handled in vr_teleop_mujoco.py → reset_test_objects).
+         Table top surface = z 0.75; table center = (0.6, 0).
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Plastic bowl: shallow octagonal container, static drop target.
+         Inner cavity ~0.087 m radius (apothem 0.09) — wide enough to drop the
+         2.5 cm blocks in. Floor at world z 0.758; rim at world z 0.795. -->
+    <body name="bowl" pos="0.6 0 0.75">
+      <geom name="bowl_bottom" type="cylinder" size="0.092 0.004" pos="0 0 0.004"
+            rgba="0.85 0.86 0.92 1" condim="3" friction="1 0.005 0.0001"/>
+      <geom name="bowl_w0" type="box" size="0.003 0.038 0.0225" pos="0.09 0 0.0225"          quat="1 0 0 0"              rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w1" type="box" size="0.003 0.038 0.0225" pos="0.06364 0.06364 0.0225" quat="0.92388 0 0 0.38268"  rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w2" type="box" size="0.003 0.038 0.0225" pos="0 0.09 0.0225"          quat="0.70711 0 0 0.70711"  rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w3" type="box" size="0.003 0.038 0.0225" pos="-0.06364 0.06364 0.0225" quat="0.38268 0 0 0.92388"  rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w4" type="box" size="0.003 0.038 0.0225" pos="-0.09 0 0.0225"         quat="0 0 0 1"              rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w5" type="box" size="0.003 0.038 0.0225" pos="-0.06364 -0.06364 0.0225" quat="-0.38268 0 0 0.92388" rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w6" type="box" size="0.003 0.038 0.0225" pos="0 -0.09 0.0225"         quat="-0.70711 0 0 0.70711" rgba="0.85 0.86 0.92 1"/>
+      <geom name="bowl_w7" type="box" size="0.003 0.038 0.0225" pos="0.06364 -0.06364 0.0225" quat="-0.92388 0 0 0.38268" rgba="0.85 0.86 0.92 1"/>
+    </body>
+
+    <!-- Colored blocks: 5 cm cubes resting on the table (free bodies).
+         Higher friction + condim 4 so the gripper can hold them. -->
+    <body name="block_red" pos="0.45 0.12 0.775">
+      <freejoint name="block_red"/>
+      <geom type="box" size="0.025 0.025 0.025" rgba="0.85 0.12 0.12 1" condim="4" friction="2 0.05 0.001"/>
+    </body>
+    <body name="block_green" pos="0.45 -0.12 0.775">
+      <freejoint name="block_green"/>
+      <geom type="box" size="0.025 0.025 0.025" rgba="0.13 0.70 0.20 1" condim="4" friction="2 0.05 0.001"/>
+    </body>
+    <body name="block_blue" pos="0.75 0.12 0.775">
+      <freejoint name="block_blue"/>
+      <geom type="box" size="0.025 0.025 0.025" rgba="0.15 0.35 0.85 1" condim="4" friction="2 0.05 0.001"/>
+    </body>
+    <body name="block_yellow" pos="0.75 -0.12 0.775">
+      <freejoint name="block_yellow"/>
+      <geom type="box" size="0.025 0.025 0.025" rgba="0.92 0.80 0.12 1" condim="4" friction="2 0.05 0.001"/>
+    </body>
   </worldbody>
 
   <equality>

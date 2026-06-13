@@ -556,6 +556,31 @@ def trigger_value(goal) -> float:
     return float((goal.metadata or {}).get("trigger", 0.0)) if goal else 0.0
 
 
+def collect_free_object_state(model, data):
+    """Find every free-joint body (the test blocks added to station.xml) and
+    capture the qpos/qvel slices + initial qpos so they can be reset on demand.
+    The arms have no free joints, so this returns exactly the test objects."""
+    qpos_slices, dof_slices = [], []
+    for j in range(model.njnt):
+        if model.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE:
+            qadr = int(model.jnt_qposadr[j])
+            dadr = int(model.jnt_dofadr[j])
+            qpos_slices.append((qadr, qadr + 7))   # free joint: 7 qpos (xyz + wxyz)
+            dof_slices.append((dadr, dadr + 6))     #            6 qvel (lin + ang)
+    return qpos_slices, dof_slices, data.qpos.copy()
+
+
+def reset_test_objects(model, data, qpos_slices, dof_slices, init_qpos):
+    """Teleport the free-joint test objects back to their start pose with zero
+    velocity, leaving the arms untouched. Bound to ENTER in the viewer window."""
+    for a, b in qpos_slices:
+        data.qpos[a:b] = init_qpos[a:b]
+    for a, b in dof_slices:
+        data.qvel[a:b] = 0.0
+    mujoco.mj_forward(model, data)
+    print(f"[Reset] {len(qpos_slices)} test object(s) returned to start positions.")
+
+
 def home_arms(model, data, iks, arms, cfg, viewer=None):
     """Smoothly ramp the controlled arms to HOME_QPOS (cosine ease-in-out) while
     stepping physics, so a double-click grip resets the robot the same way
@@ -583,6 +608,16 @@ def run(cfg: VRTeleopConfig):
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)
 
+    # Test-object reset: capture the blocks' start pose and bind ENTER (in the
+    # viewer window) to teleport them back. The passive viewer has no custom
+    # on-screen buttons, so a key press is the "reset button".
+    obj_qpos_slices, obj_dof_slices, obj_init_qpos = collect_free_object_state(model, data)
+    reset_request = threading.Event()
+
+    def key_callback(keycode):
+        if keycode == 257:        # GLFW_KEY_ENTER → reset test objects
+            reset_request.set()
+
     arms = ["left", "right"] if cfg.arm == "both" else [cfg.arm]
 
     iks = {s: ArmIK(model, s, cfg) for s in ARM_SPEC}
@@ -609,16 +644,23 @@ def run(cfg: VRTeleopConfig):
     print("[Info]     gripper: push fwd → reach, move L/R/up/down, rotate → wrist.")
     print("[Info]   • grip OFF → arm freezes; reposition your hand and grip again.")
     print("[Info]   • DOUBLE-CLICK GRIP → return to the home pose and start over.")
-    print("[Info]   • trigger  → close/open gripper.   Close the viewer window to stop.\n")
+    print("[Info]   • trigger  → close/open gripper.")
+    print("[Info]   • press ENTER in the MuJoCo window → reset the test blocks.")
+    print("[Info]   Close the viewer window to stop.\n")
 
     prev_grip = {a: False for a in arms}
     last_press = {a: -1e9 for a in arms}   # last grip rising-edge time (double-click)
     dt = 1.0 / cfg.control_hz
 
-    with mujoco.viewer.launch_passive(model, data) as viewer:
+    with mujoco.viewer.launch_passive(model, data, key_callback=key_callback) as viewer:
         try:
             while viewer.is_running():
                 t0 = time.perf_counter()
+
+                if reset_request.is_set():
+                    reset_request.clear()
+                    reset_test_objects(model, data, obj_qpos_slices,
+                                       obj_dof_slices, obj_init_qpos)
 
                 goals = {a: monitor.get_latest_goal_nowait(a) for a in arms}
                 g_now = {a: grip_active(goals[a]) for a in arms}
@@ -691,11 +733,22 @@ def run_test(cfg: VRTeleopConfig):
     p0, R0 = ik.fk(data.qpos)
     print(f"[test] {side} EE start pos = {np.round(p0, 3)}")
 
+    obj_qpos_slices, obj_dof_slices, obj_init_qpos = collect_free_object_state(model, data)
+    reset_request = threading.Event()
+
+    def key_callback(keycode):
+        if keycode == 257:        # GLFW_KEY_ENTER → reset test objects
+            reset_request.set()
+
     print("[test] Driving the EE in a 8cm circle (position-only). "
-          "Close the viewer to stop.")
+          "Press ENTER to reset test blocks; close the viewer to stop.")
     t0 = time.time()
-    with mujoco.viewer.launch_passive(model, data) as viewer:
+    with mujoco.viewer.launch_passive(model, data, key_callback=key_callback) as viewer:
         while viewer.is_running():
+            if reset_request.is_set():
+                reset_request.clear()
+                reset_test_objects(model, data, obj_qpos_slices,
+                                   obj_dof_slices, obj_init_qpos)
             t = time.time() - t0
             tgt = p0 + np.array([0.0, 0.06 * math.sin(t), 0.06 * math.cos(t) - 0.06])
             ik.solve(data.qpos, tgt, R0 if cfg.track_orientation else None)

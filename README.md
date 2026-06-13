@@ -13,7 +13,7 @@ YAM/
 ├── load_station.py            # Load station.xml in MuJoCo viewer (home pose demo)
 ├── visualize_urdf.py          # Visualize station URDF with interactive joint sliders (viser)
 └── station/
-    ├── station.xml            # MuJoCo bimanual scene (authoritative model)
+    ├── station.xml            # MuJoCo bimanual scene (authoritative model) + test objects
     ├── station.urdf           # URDF for visualization / planning tooling
     ├── scene.xml              # Alternate scene entry point
     ├── vr_teleop_mujoco.py    # ★ Main VR teleop script (Quest 3 → MuJoCo)
@@ -47,6 +47,7 @@ Instead of scripted trajectories, you stream live hand-tracking data from a Ques
 | Latency path | Quest 3 browser → Cloudflare tunnel → local aiohttp server → MuJoCo control loop |
 | Supported configs | Single arm (`left`/`right`) · Both arms simultaneous |
 | Physics | MuJoCo passive viewer, 60 Hz control, 8 substeps per tick |
+| Test scene | Plastic bowl + 4 colored 5 cm blocks on the table for pick-and-place practice (press **ENTER** to reset) |
 
 ---
 
@@ -169,10 +170,26 @@ The arms will **not move** until you squeeze grip — the first grip anchors the
 | **Gripper close** | Pull **TRIGGER** |
 | **Gripper open** | Release trigger |
 | **Return to home pose** | Double-click grip (two quick presses within 0.4 s) |
+| **Reset test blocks** | Press **ENTER** in the MuJoCo viewer window |
 
 > The arm **only moves while you hold grip** (grip clutch mechanic).
 > Releasing grip freezes the arm so you can reposition your hand without disturbing the robot —
 > exactly like lifting a mouse off a pad.
+
+---
+
+## Pick-and-Place Test Scene
+
+`station.xml` ships with a built-in practice scene for trying out the teleop:
+
+- A static **plastic bowl** in the middle of the table — a stable drop target.
+- Four **colored 5 cm blocks** (red, green, blue, yellow) resting on the table around the bowl, two on each arm's side. Each block is a free body with gripper-friendly friction so you can grasp it.
+
+Grab a block with the gripper, drop it into the bowl, and repeat. Because MuJoCo's
+passive viewer has no custom on-screen buttons, the **reset** is bound to the **ENTER**
+key: pressing it (with the MuJoCo window focused) teleports every block back to its
+start position with zero velocity. The arms are left untouched, so you don't lose your
+teleop pose when resetting the scene.
 
 ---
 
